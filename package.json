@@ -1,0 +1,396 @@
+{
+  "name": "cloudstack-vscode",
+  "displayName": "CloudStack-VSCode",
+  "description": "CloudStack 계정으로 로그인해 내 VM 목록을 보고 Remote-SSH 로 바로 접속한다.",
+  "version": "0.3.0",
+  "publisher": "cloudstack-vscode",
+  "private": true,
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "cloudstack",
+    "ssh",
+    "remote",
+    "vm"
+  ],
+  "extensionKind": [
+    "ui"
+  ],
+  "main": "./out/extension.js",
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": true
+    },
+    "virtualWorkspaces": true
+  },
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "cloudstack",
+          "title": "CloudStack",
+          "icon": "media/cloudstack.svg"
+        }
+      ]
+    },
+    "views": {
+      "cloudstack": [
+        {
+          "id": "cloudstack.vms",
+          "name": "내 가상머신",
+          "icon": "media/cloudstack.svg"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "cloudstack.vms",
+        "contents": "CloudStack 계정으로 로그인하면 내 VM 목록이 여기에 나온다.\n[로그인](command:cloudstack.login)\nRemote - SSH 확장이 설치되어 있으면 VM 을 VS Code 창으로 바로 연다.",
+        "when": "!cloudstack.loggedIn"
+      }
+    ],
+    "commands": [
+      {
+        "command": "cloudstack.login",
+        "title": "로그인",
+        "category": "CloudStack",
+        "icon": "$(sign-in)"
+      },
+      {
+        "command": "cloudstack.logout",
+        "title": "로그아웃",
+        "category": "CloudStack",
+        "icon": "$(sign-out)"
+      },
+      {
+        "command": "cloudstack.refresh",
+        "title": "새로고침",
+        "category": "CloudStack",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "cloudstack.connect",
+        "title": "새 창에서 접속",
+        "category": "CloudStack",
+        "icon": "$(remote)"
+      },
+      {
+        "command": "cloudstack.connectCurrentWindow",
+        "title": "현재 창에서 접속",
+        "category": "CloudStack"
+      },
+      {
+        "command": "cloudstack.openTerminal",
+        "title": "SSH 터미널 열기",
+        "category": "CloudStack",
+        "icon": "$(terminal)"
+      },
+      {
+        "command": "cloudstack.copySshCommand",
+        "title": "SSH 명령 복사",
+        "category": "CloudStack",
+        "icon": "$(copy)"
+      },
+      {
+        "command": "cloudstack.setSshUser",
+        "title": "SSH 사용자 변경",
+        "category": "CloudStack"
+      },
+      {
+        "command": "cloudstack.startVm",
+        "title": "VM 시작",
+        "category": "CloudStack",
+        "icon": "$(debug-start)"
+      },
+      {
+        "command": "cloudstack.stopVm",
+        "title": "VM 중지",
+        "category": "CloudStack",
+        "icon": "$(debug-stop)"
+      },
+      {
+        "command": "cloudstack.registerSshKey",
+        "title": "SSH 공개키 등록",
+        "category": "CloudStack",
+        "icon": "$(key)"
+      },
+      {
+        "command": "cloudstack.resetSshKey",
+        "title": "SSH 키 교체 (중지된 VM)",
+        "category": "CloudStack"
+      },
+      {
+        "command": "cloudstack.openSshConfig",
+        "title": "SSH config 열기",
+        "category": "CloudStack",
+        "icon": "$(gear)"
+      },
+      {
+        "command": "cloudstack.exposeSsh",
+        "title": "공인 IP 로 SSH 열기",
+        "category": "CloudStack",
+        "icon": "$(globe)"
+      },
+      {
+        "command": "cloudstack.unexposeSsh",
+        "title": "공인 SSH 닫기",
+        "category": "CloudStack"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "cloudstack.login",
+          "when": "view == cloudstack.vms && !cloudstack.loggedIn",
+          "group": "navigation@1"
+        },
+        {
+          "command": "cloudstack.refresh",
+          "when": "view == cloudstack.vms && cloudstack.loggedIn",
+          "group": "navigation@1"
+        },
+        {
+          "command": "cloudstack.registerSshKey",
+          "when": "view == cloudstack.vms && cloudstack.loggedIn",
+          "group": "1_keys@1"
+        },
+        {
+          "command": "cloudstack.openSshConfig",
+          "when": "view == cloudstack.vms",
+          "group": "2_config@1"
+        },
+        {
+          "command": "cloudstack.logout",
+          "when": "view == cloudstack.vms && cloudstack.loggedIn",
+          "group": "3_auth@1"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "cloudstack.connect",
+          "when": "view == cloudstack.vms && viewItem =~ /^vm\\.running(\\.exposed)?$/",
+          "group": "inline@1"
+        },
+        {
+          "command": "cloudstack.openTerminal",
+          "when": "view == cloudstack.vms && viewItem =~ /^vm\\.running(\\.exposed)?$/",
+          "group": "inline@2"
+        },
+        {
+          "command": "cloudstack.startVm",
+          "when": "view == cloudstack.vms && viewItem =~ /^vm\\.stopped(\\.exposed)?$/",
+          "group": "inline@1"
+        },
+        {
+          "command": "cloudstack.connect",
+          "when": "view == cloudstack.vms && viewItem =~ /^vm\\.(running|stopped)(\\.exposed)?$/",
+          "group": "1_connect@1"
+        },
+        {
+          "command": "cloudstack.connectCurrentWindow",
+          "when": "view == cloudstack.vms && viewItem =~ /^vm\\.(running|stopped)(\\.exposed)?$/",
+          "group": "1_connect@2"
+        },
+        {
+          "command": "cloudstack.openTerminal",
+          "when": "view == cloudstack.vms && viewItem =~ /^vm\\.(running|stopped)(\\.exposed)?$/",
+          "group": "1_connect@3"
+        },
+        {
+          "command": "cloudstack.copySshCommand",
+          "when": "view == cloudstack.vms && viewItem =~ /^vm\\.(running|stopped)(\\.exposed)?$/",
+          "group": "1_connect@4"
+        },
+        {
+          "command": "cloudstack.setSshUser",
+          "when": "view == cloudstack.vms && viewItem =~ /^vm\\./",
+          "group": "2_settings@1"
+        },
+        {
+          "command": "cloudstack.startVm",
+          "when": "view == cloudstack.vms && viewItem =~ /^vm\\.stopped(\\.exposed)?$/",
+          "group": "3_power@1"
+        },
+        {
+          "command": "cloudstack.stopVm",
+          "when": "view == cloudstack.vms && viewItem =~ /^vm\\.running(\\.exposed)?$/",
+          "group": "3_power@2"
+        },
+        {
+          "command": "cloudstack.resetSshKey",
+          "when": "view == cloudstack.vms && viewItem =~ /^vm\\.stopped(\\.exposed)?$/",
+          "group": "4_keys@1"
+        },
+        {
+          "command": "cloudstack.exposeSsh",
+          "when": "view == cloudstack.vms && viewItem =~ /^vm\\.(running|stopped)(\\.exposed)?$/",
+          "group": "5_public@1"
+        },
+        {
+          "command": "cloudstack.unexposeSsh",
+          "when": "view == cloudstack.vms && viewItem =~ /\\.exposed$/",
+          "group": "5_public@2"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "cloudstack.logout",
+          "when": "cloudstack.loggedIn"
+        },
+        {
+          "command": "cloudstack.refresh",
+          "when": "cloudstack.loggedIn"
+        },
+        {
+          "command": "cloudstack.connect",
+          "when": "cloudstack.loggedIn"
+        },
+        {
+          "command": "cloudstack.connectCurrentWindow",
+          "when": "cloudstack.loggedIn"
+        },
+        {
+          "command": "cloudstack.openTerminal",
+          "when": "cloudstack.loggedIn"
+        },
+        {
+          "command": "cloudstack.copySshCommand",
+          "when": "cloudstack.loggedIn"
+        },
+        {
+          "command": "cloudstack.setSshUser",
+          "when": "cloudstack.loggedIn"
+        },
+        {
+          "command": "cloudstack.startVm",
+          "when": "cloudstack.loggedIn"
+        },
+        {
+          "command": "cloudstack.stopVm",
+          "when": "cloudstack.loggedIn"
+        },
+        {
+          "command": "cloudstack.registerSshKey",
+          "when": "cloudstack.loggedIn"
+        },
+        {
+          "command": "cloudstack.resetSshKey",
+          "when": "cloudstack.loggedIn"
+        },
+        {
+          "command": "cloudstack.exposeSsh",
+          "when": "cloudstack.loggedIn"
+        },
+        {
+          "command": "cloudstack.unexposeSsh",
+          "when": "cloudstack.loggedIn"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "CloudStack-VSCode",
+      "properties": {
+        "cloudstack.endpoint": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "CloudStack 주소. 관리 UI 주소(`http://host:8080/client`)를 넣어도 API 주소로 바꿔 쓴다."
+        },
+        "cloudstack.allowSelfSignedCertificate": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "HTTPS 엔드포인트의 자체서명 인증서를 허용한다. 중간자 공격을 막지 못하므로 신뢰하는 내부망에서만 켤 것."
+        },
+        "cloudstack.ssh.defaultUser": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "VM 별 사용자를 따로 정하지 않았을 때 쓰는 SSH 사용자명. 비우면 처음 접속할 때 묻는다."
+        },
+        "cloudstack.ssh.identityFile": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "SSH 개인키 경로(예: `~/.ssh/id_ed25519`). 비우면 ssh 기본값과 ssh-agent 를 쓴다."
+        },
+        "cloudstack.ssh.jumpHost": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "사설 IP 로 접속할 때 거칠 점프 호스트(`ProxyJump` 값, 예: `student@bastion.example.ac.kr`)."
+        },
+        "cloudstack.ssh.addressPreference": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "public",
+            "private",
+            "ask"
+          ],
+          "enumDescriptions": [
+            "Static NAT → 포트포워딩 → 사설 IP 순으로 첫 번째",
+            "공인 경로(Static NAT/포트포워딩)만",
+            "사설 IP 만 (VPN·점프 호스트 사용 시)",
+            "접속할 때마다 고른다"
+          ],
+          "default": "auto",
+          "markdownDescription": "SSH 로 접속할 주소를 고르는 방식."
+        },
+        "cloudstack.ssh.configFile": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "항목을 기록할 SSH config 경로. 비우면 `remote.SSH.configFile`, 그것도 비면 `~/.ssh/config`."
+        },
+        "cloudstack.ssh.openPath": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "접속 후 열 원격 폴더(예: `/home/ubuntu/project`). 비우면 폴더 없이 원격 창을 연다."
+        },
+        "cloudstack.refreshIntervalSeconds": {
+          "type": "number",
+          "default": 0,
+          "minimum": 0,
+          "markdownDescription": "VM 목록 자동 새로고침 주기(초). 0 이면 끈다. 10 미만은 무시한다."
+        },
+        "cloudstack.expose.mode": {
+          "type": "string",
+          "enum": [
+            "ask",
+            "auto",
+            "never"
+          ],
+          "enumDescriptions": [
+            "매번 묻는다",
+            "묻지 않고 만든다",
+            "만들지 않는다"
+          ],
+          "default": "ask",
+          "markdownDescription": "Isolated 네트워크 VM 에 외부에서 닿는 SSH 경로(Static NAT/22번 포트포워딩)가 없을 때, 네트워크 공인 IP(Source NAT 우선)에 SSH 포트포워딩과 방화벽 규칙을 만들지 정한다. `cloudstack.ssh.jumpHost` 를 지정하면 묻지 않는다."
+        },
+        "cloudstack.expose.portRange": {
+          "type": "string",
+          "default": "22000-22999",
+          "pattern": "^\\d{1,5}-\\d{1,5}$",
+          "markdownDescription": "공인 IP 쪽에 쓸 포트 범위. 같은 IP 의 기존 포트포워딩·로드밸런서·방화벽 규칙이 쓰는 포트는 건너뛴다."
+        },
+        "cloudstack.expose.allowedCidrs": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "SSH 를 허용할 출발지 IPv4 CIDR(쉼표 구분, 예: `203.0.113.0/24`). 비우면 열 때마다 묻는다."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p .",
+    "watch": "tsc -w -p .",
+    "test": "tsc -p . && node --test out/test/*.test.js",
+    "package": "vsce package --no-dependencies --skip-license --allow-missing-repository"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "@types/node": "^20.19.43",
+    "@types/vscode": "1.85.0",
+    "@vscode/vsce": "^4.0.0"
+  }
+}
